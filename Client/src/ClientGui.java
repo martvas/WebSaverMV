@@ -83,7 +83,7 @@ public class ClientGui extends JFrame implements ActionListener {
         Object src = e.getSource();
         if (src == btnLogin) {
             if (!tfUsername.getText().isEmpty() && !tfPass.getText().isEmpty()) {
-                //-----------! сделать норм общение между клиентом сервером
+                //-----------! сделать норм общение между ClientGUi и SocketThread
                 //Посылаем запрос на логин
                 String loginRequest = "login:" + tfUsername.getText() + ":" + tfPass.getText();
                 socketThread.sendRequest(loginRequest);
