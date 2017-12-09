@@ -3,6 +3,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class ServerSocketThread extends Thread {
     private ObjectInputStream in;
@@ -37,7 +38,8 @@ public class ServerSocketThread extends Thread {
                     }
                 }
             }
-
+        } catch (SocketException e){
+            System.out.println("Клиент отключился");
         } catch (Exception e){
             e.printStackTrace();
         }

@@ -54,8 +54,6 @@ public class DataBase {
         } finally {
             disconnect();
         }
-
-
         return false;
     }
 
