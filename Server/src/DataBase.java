@@ -6,6 +6,12 @@ public class DataBase {
     private PreparedStatement pst;
     private ResultSet rSet;
 
+    private FileWork fileWork;
+
+    public DataBase(FileWork fileWork){
+        this.fileWork = fileWork;
+    }
+
     public boolean loginRequest(String username, String password) {
         connect();
         try {
@@ -35,15 +41,28 @@ public class DataBase {
             rSet = pst.executeQuery();
 
             if (!rSet.next()) {
+
                 pst = connection.prepareStatement("INSERT INTO users (username, password, folder) VALUES (?, ?, ?)");
                 pst.setString(1, username);
                 pst.setString(2, password);
                 pst.setString(3, folderName);
-                int i = pst.executeUpdate();
-                if (i > 0){
+                int newUserResult = pst.executeUpdate();
+
+                st = connection.createStatement();
+                boolean createTableResult = st.execute("CREATE TABLE IF NOT EXISTS " + folderName + " (\n" +
+                        "    id       INTEGER PRIMARY KEY AUTOINCREMENT\n" +
+                        "                     UNIQUE\n" +
+                        "                     NOT NULL,\n" +
+                        "    filename TEXT    UNIQUE\n" +
+                        "                     NOT NULL,\n" +
+                        "    filesize TEXT    NOT NULL\n" +
+                        ");");
+
+                if (newUserResult > 0 && fileWork.makeDir(folderName)){
                     return true;
                 } else {
                     System.out.println("Рег: Не смог зарегистрировать. ");
+                    return false;
                 }
             } else {
                 System.out.println("Рег: Данное имя уже есть в базе");

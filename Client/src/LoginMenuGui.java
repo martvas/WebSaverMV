@@ -4,15 +4,12 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class LoginMenuGUI extends JFrame implements ActionListener {
+public class LoginMenuGui extends JFrame implements ActionListener {
 
     private static final String INFO_SIGN = "( i )";
 
-
-    SocketThread socketThread;
-    ClientGui clientGui;
-    private GridBagConstraints gbc;
-
+    private SocketThread socketThread;
+    private ClientGui clientGui;
 
     //Поля для экрана входа
     private JFrame fLogin;
@@ -22,11 +19,11 @@ public class LoginMenuGUI extends JFrame implements ActionListener {
     private JButton btnLogin;
     private JButton btnRegister;
 
-    public LoginMenuGUI(SocketThread socketThread, ClientGui clientGui){
+    public LoginMenuGui(SocketThread socketThread, ClientGui clientGui){
         this.socketThread = socketThread;
         this.clientGui = clientGui;
 
-        gbc = new GridBagConstraints();
+        GridBagConstraints gbc = new GridBagConstraints();
 
         //Экран входа
         final int START_WIDTH = 400;
@@ -105,7 +102,7 @@ public class LoginMenuGUI extends JFrame implements ActionListener {
             sendLogin();
         } else if (src == btnRegister) {
             fLogin.setVisible(false);
-            clientGui.fRegSetVisible(true);
+            clientGui.getRegMenuGui().setVisible(true);
         } else{
             throw new RuntimeException("Unknown src = " + src);
         }
@@ -123,4 +120,9 @@ public class LoginMenuGUI extends JFrame implements ActionListener {
     public void setInfo(String infoMsg){
         lbInfo.setText(INFO_SIGN + " " + infoMsg);
     }
+
+    public void setVisible(boolean b){
+        fLogin.setVisible(b);
+    }
+
 }

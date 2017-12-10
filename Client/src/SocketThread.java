@@ -20,11 +20,11 @@ public class SocketThread extends Thread {
     public void tryToConnect(){
         while (!connectedToServer){
             try {
-                clientGui.loginMenuGUI.setInfo("Пытаюсь присоединиться к серверу");
+                clientGui.getLoginMenuGUI().setInfo("Пытаюсь присоединиться к серверу");
                 socket = new Socket("localhost", 8189);
                 connectedToServer = true;
             } catch (ConnectException e) {
-                clientGui.loginMenuGUI.setInfo("Не смог подключиться к серверу");
+                clientGui.getLoginMenuGUI().setInfo("Не смог подключиться к серверу");
 
                 //Засыпаю и попробую снова через 2 секунды
                 try {
@@ -42,8 +42,8 @@ public class SocketThread extends Thread {
     public void run() {
         try{
             tryToConnect();
-            clientGui.loginMenuGUI.setInfo("Подключился к серверу");
-
+            clientGui.getLoginMenuGUI().setInfo("Подключился к серверу");
+            System.out.println("Eto potok" + getName());
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
             out.flush();
@@ -63,7 +63,7 @@ public class SocketThread extends Thread {
         }
     }
 
-    public void sendRequest(String msg){
+    public synchronized void sendRequest(String msg){
         try {
             out.writeObject(msg);
             out.flush();
@@ -72,18 +72,28 @@ public class SocketThread extends Thread {
         }
     }
 
-    public void answerHandler(String answer){
+    public synchronized void sendFile(File file){
+        if (file.exists()){
+            try {
+                out.writeObject(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public synchronized void answerHandler(String answer){
         if (answer.equals("loginok")){
-            clientGui.fLoginSetVisible(false);
-            clientGui.fMainSetVisible(true);
+            clientGui.getLoginMenuGUI().setVisible(false);
+            clientGui.getMainMenuGui().setVisible(true);
         } else if (answer.equals("loginwrong")){
-            clientGui.loginMenuGUI.setInfo("Имя или пароль введены не правильно");
+            clientGui.getLoginMenuGUI().setInfo("Имя или пароль введены не правильно");
         } else if (answer.equals("regok")){
-            clientGui.fLoginSetVisible(true);
-            clientGui.fLoginSetVisible(false);
-            clientGui.loginMenuGUI.setInfo("Регистрация прошла успешна. Введите данные");
+            clientGui.getLoginMenuGUI().setVisible(true);
+            clientGui.getRegMenuGui().setVisible(false);
+            clientGui.getLoginMenuGUI().setInfo("Регистрация прошла успешна. Введите данные");
         } else if (answer.equals("regwrong")){
-            clientGui.setInfoReg("Данный аккаунт уже зарегистрирован");
+            clientGui.getRegMenuGui().setInfoReg("Данный аккаунт уже зарегистрирован");
         } else {
             System.out.println("Ответ сервера не известен" + answer);
         }

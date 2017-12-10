@@ -1,6 +1,4 @@
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -36,6 +34,10 @@ public class ServerSocketThread extends Thread {
                     if (request instanceof String){
                         requestHandler(request.toString());
                     }
+
+                    if (request instanceof File){
+                        saveFile((File) request);
+                    }
                 }
             }
         } catch (SocketException e){
@@ -43,6 +45,37 @@ public class ServerSocketThread extends Thread {
         } catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    private void saveFile(File file) {
+        String fileName = file.getName();
+        String targetFileName = "Server/clients_folder/martin123/" + fileName;
+        System.out.println("Попытка сохранить файл: " + file.getName());
+        FileInputStream in = null;
+        FileOutputStream out = null;
+        int c;
+
+        try {
+
+            in = new FileInputStream(file);
+            out = new FileOutputStream(targetFileName);
+            while ((c = in.read()) != -1){
+                out.write(c);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+
+            try {
+                out.close();
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+        System.out.println("Файл сохранен в " + targetFileName);
     }
 
     public synchronized void requestHandler(String request){
