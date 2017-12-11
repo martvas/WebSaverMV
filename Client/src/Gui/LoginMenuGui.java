@@ -1,3 +1,7 @@
+package Gui;
+
+import Network.SocketThreadC;
+
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
@@ -8,7 +12,7 @@ public class LoginMenuGui extends JFrame implements ActionListener {
 
     private static final String INFO_SIGN = "( i )";
 
-    private SocketThread socketThread;
+    private SocketThreadC socketThread;
     private ClientGui clientGui;
 
     //Поля для экрана входа
@@ -19,7 +23,7 @@ public class LoginMenuGui extends JFrame implements ActionListener {
     private JButton btnLogin;
     private JButton btnRegister;
 
-    public LoginMenuGui(SocketThread socketThread, ClientGui clientGui){
+    public LoginMenuGui(SocketThreadC socketThread, ClientGui clientGui){
         this.socketThread = socketThread;
         this.clientGui = clientGui;
 

@@ -1,8 +1,10 @@
+package DataBase;
+
+import FileWork.FileWork;
 import java.sql.*;
 
 public class DataBase {
     private Connection connection;
-    private Statement st;
     private PreparedStatement pst;
     private ResultSet rSet;
 
@@ -34,22 +36,21 @@ public class DataBase {
 
     public boolean regRequrst(String username, String password) {
         connect();
-        try {
-            String folderName = username + (int)(Math.random() * 1000);
-            pst = connection.prepareStatement("SELECT id FROM users WHERE username = ?");
+        try { pst = connection.prepareStatement("SELECT id FROM users WHERE username = ?");
             pst.setString(1, username);
             rSet = pst.executeQuery();
 
             if (!rSet.next()) {
-
+                //Создаю имя папки для пользователя такое же как аккаунт, чтобы легче было добраться до папки
+                //Имя всегда уникальное, в дальнейшем возможно поменять
                 pst = connection.prepareStatement("INSERT INTO users (username, password, folder) VALUES (?, ?, ?)");
                 pst.setString(1, username);
                 pst.setString(2, password);
-                pst.setString(3, folderName);
+                pst.setString(3, username);
                 int newUserResult = pst.executeUpdate();
 
-                st = connection.createStatement();
-                boolean createTableResult = st.execute("CREATE TABLE IF NOT EXISTS " + folderName + " (\n" +
+                Statement st = connection.createStatement();
+                st.execute("CREATE TABLE IF NOT EXISTS " + username + " (\n" +
                         "    id       INTEGER PRIMARY KEY AUTOINCREMENT\n" +
                         "                     UNIQUE\n" +
                         "                     NOT NULL,\n" +
@@ -58,7 +59,7 @@ public class DataBase {
                         "    filesize TEXT    NOT NULL\n" +
                         ");");
 
-                if (newUserResult > 0 && fileWork.makeDir(folderName)){
+                if (newUserResult > 0 && fileWork.makeDir(username)){
                     return true;
                 } else {
                     System.out.println("Рег: Не смог зарегистрировать. ");
@@ -74,6 +75,56 @@ public class DataBase {
             disconnect();
         }
         return false;
+    }
+
+    public boolean addFileToDB(String username, String fileName, String fileSize){
+        try {
+            connect();
+            pst = connection.prepareStatement("INSERT INTO " + username +" (filename, filesize) VALUES (?, ?)");
+            pst.setString(1, fileName);
+            pst.setString(2, fileSize);
+            int addFileResult = pst.executeUpdate();
+
+            if (addFileResult > 0) {
+                System.out.println("БД: " + fileName + " - добавлена информация о файле в БД");
+                return true;
+            } else {
+                System.out.println("БД: " + fileName + " - не смог добавить в Бд");
+                return false;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            disconnect();
+        }
+        return false;
+
+    }
+
+    public String getTable(String userName){
+        StringBuffer resultSB = new StringBuffer();
+        connect();
+        Statement st = null;
+        try {
+            st = connection.createStatement();
+            ResultSet rstUserFiles = st.executeQuery("SELECT filename, filesize FROM martin");
+            while (rstUserFiles.next()) {
+                String fileName = rstUserFiles.getString(1);
+                String fileSize = rstUserFiles.getString(2);
+
+                resultSB.append(fileName);
+                resultSB.append(":");
+                resultSB.append(fileSize);
+                resultSB.append(":");
+            }
+            rstUserFiles.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            disconnect();
+        }
+
+        return resultSB.toString();
     }
 
     public void connect() {

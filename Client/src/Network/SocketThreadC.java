@@ -1,10 +1,13 @@
+package Network;
+
+import Gui.ClientGui;
+
 import java.io.*;
 import java.net.ConnectException;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.sql.Connection;
+import java.util.Arrays;
 
-public class SocketThread extends Thread {
+public class SocketThreadC extends Thread {
     private Socket socket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
@@ -12,7 +15,7 @@ public class SocketThread extends Thread {
     private boolean connectedToServer;
     private ClientGui clientGui;
 
-    public SocketThread(ClientGui clientGui){
+    public SocketThreadC(ClientGui clientGui){
         this.clientGui = clientGui;
         this.connectedToServer = false;
     }
@@ -43,7 +46,6 @@ public class SocketThread extends Thread {
         try{
             tryToConnect();
             clientGui.getLoginMenuGUI().setInfo("Подключился к серверу");
-            System.out.println("Eto potok" + getName());
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
             out.flush();
@@ -83,9 +85,17 @@ public class SocketThread extends Thread {
     }
 
     public synchronized void answerHandler(String answer){
-        if (answer.equals("loginok")){
+        String[] requestArr = answer.split(":");
+        answer = requestArr[0];
+        //--------!!!!!!Пока сюда добавлю после добавления файла-------- переделать
+        if (answer.equals("loginok") || answer.equals("update")){
             clientGui.getLoginMenuGUI().setVisible(false);
             clientGui.getMainMenuGui().setVisible(true);
+            //----------!!!!!!!!!!! переделать
+            if(requestArr.length > 0){
+                String[] arrTable = Arrays.copyOfRange(requestArr, 1, requestArr.length);
+                clientGui.getMainMenuGui().setTable(arrTable);
+            } else System.out.println("Net dannih iz bazy");
         } else if (answer.equals("loginwrong")){
             clientGui.getLoginMenuGUI().setInfo("Имя или пароль введены не правильно");
         } else if (answer.equals("regok")){

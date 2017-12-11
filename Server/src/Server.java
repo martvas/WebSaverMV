@@ -1,9 +1,15 @@
+import DataBase.DataBase;
+import FileWork.FileWork;
+import Network.ServerSocketThread;
+
 public class Server {
 
     /*
-    Что сделать:
-    1. После регистрации сделать создание таблицы под каждого клиента с файлами
-    2.
+    Сейчас:
+    Клиент в новом потоке, создается директория, таблица, можно закинуть файл.
+
+    Сделать:
+    1. Отдавать информацию из БД клиенту о добавленном файле
 
      */
     public static void main(String[] args) {

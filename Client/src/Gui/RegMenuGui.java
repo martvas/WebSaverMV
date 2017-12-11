@@ -1,3 +1,7 @@
+package Gui;
+
+import Network.SocketThreadC;
+
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
@@ -7,8 +11,8 @@ import java.awt.event.ActionListener;
 public class RegMenuGui extends JFrame implements ActionListener {
     private static final String INFO_SIGN = "( i )";
 
-    SocketThread socketThread;
-    ClientGui clientGui;
+    private SocketThreadC socketThread;
+    private ClientGui clientGui;
     private GridBagConstraints gbc;
 
     //Поля для экрана рагистрации
@@ -54,7 +58,7 @@ public class RegMenuGui extends JFrame implements ActionListener {
         fReg.setVisible(b);
     }
 
-    public RegMenuGui(SocketThread socketThread, ClientGui clientGui){
+    public RegMenuGui(SocketThreadC socketThread, ClientGui clientGui){
         this.socketThread = socketThread;
         this.clientGui = clientGui;
 
@@ -112,7 +116,7 @@ public class RegMenuGui extends JFrame implements ActionListener {
         gbc.gridwidth = 1;
         pReg.add(lbPassReg, gbc);
 
-        tfPassReg = new JTextField(20);
+        tfPassReg = new JPasswordField(20);
         gbc.gridx = 1;
         gbc.gridy = 3;
         gbc.gridwidth = 2;
@@ -124,7 +128,7 @@ public class RegMenuGui extends JFrame implements ActionListener {
         gbc.gridwidth = 1;
         pReg.add(lbPass2Reg, gbc);
 
-        tfPass2Reg = new JTextField(20);
+        tfPass2Reg = new JPasswordField(20);
         gbc.gridx = 1;
         gbc.gridy = 4;
         gbc.gridwidth = 2;

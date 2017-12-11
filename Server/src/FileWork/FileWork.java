@@ -1,7 +1,9 @@
+package FileWork;
+
 import java.io.File;
 
 public class FileWork {
-    File file;
+    private File file;
 
     public FileWork(){
 

@@ -1,3 +1,7 @@
+package Gui;
+
+import Network.SocketThreadC;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -6,7 +10,7 @@ import java.io.File;
 
 public class MainMenuGui extends JFrame implements ActionListener {
 
-    private SocketThread socketThread;
+    private SocketThreadC socketThread;
     private ClientGui clientGui;
 
     //Основной экран папка
@@ -24,7 +28,7 @@ public class MainMenuGui extends JFrame implements ActionListener {
     private JButton btnSaveFile;
 
 
-    public MainMenuGui(SocketThread socketThread, ClientGui clientGui) {
+    public MainMenuGui(SocketThreadC socketThread, ClientGui clientGui) {
         this.socketThread = socketThread;
         this.clientGui = clientGui;
         //Основной экран программы. Работа с файлами
@@ -42,18 +46,20 @@ public class MainMenuGui extends JFrame implements ActionListener {
         pMainUp.add(lbInfoMain, BorderLayout.LINE_START);
 
         //Данные для таблицы пока
-        Object[] columnsHeader = new String[]{"Name", "Size"};
-        Object[][] arr = new String[][]{{"file.txt", "900 kb"},
-                {"image.jpg", "500 kb"},
-                {"image.jpg", "500 kb"},
-                {"image.jpg", "500 kb"},
-                {"image.jpg", "500 kb"},
-                {"image.jpg", "500 kb"}};
+        Object[] columnNames = new String[]{"Name", "Size"};
+        //Изменить в дальнейшем
+        Object[][] arrRows = new String[30][2];
+        //!!!!!!! - Пока заполняю пустотой. Заменитьи потом
+        for (int i = 0; i < arrRows.length; i++) {
+            for (int j = 0; j < arrRows[0].length; j++) {
+                arrRows[i][j] = " ";
+            }
+        }
 
         pMain = new JPanel(new BorderLayout());
 
         JPanel pTable = new JPanel();
-        tFileTable = new JTable(arr, columnsHeader);
+        tFileTable = new JTable(arrRows, columnNames);
         tFileTable.setAutoscrolls(true);
         tFileTable.setPreferredSize(new Dimension(300, 400));
         JScrollPane pane = new JScrollPane(tFileTable);
@@ -114,6 +120,17 @@ public class MainMenuGui extends JFrame implements ActionListener {
             File file = fileopen.getSelectedFile();
             setInfo(file.getName());
             socketThread.sendFile(file);
+        }
+    }
+
+    //Заполняю таблицу из строки
+    //!!!!!!! переделать потом
+    public void setTable(String[] tableFromBD){
+        int numCell = 0;
+        for (int i = 0; i < tableFromBD.length / 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                tFileTable.setValueAt(tableFromBD[numCell++], i, j);
+            }
         }
     }
 }

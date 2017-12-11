@@ -1,8 +1,8 @@
+package Gui;
+
+import Network.SocketThreadC;
+
 import javax.swing.*;
-import javax.swing.border.LineBorder;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 /*
 что сделать:
@@ -10,7 +10,7 @@ import java.awt.event.ActionListener;
  */
 public class ClientGui extends JFrame {
 
-    private SocketThread socketThread;
+    private SocketThreadC socketThread;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -26,8 +26,7 @@ public class ClientGui extends JFrame {
     private MainMenuGui mainMenuGui;
 
     public ClientGui() {
-        socketThread = new SocketThread(this);
-        System.out.println("potok " + socketThread.getName());
+        socketThread = new SocketThreadC(this);
         loginMenuGUI = new LoginMenuGui(socketThread, this);
         regMenuGui = new RegMenuGui(socketThread, this);
         mainMenuGui = new MainMenuGui(socketThread, this);
