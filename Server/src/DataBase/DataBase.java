@@ -107,7 +107,7 @@ public class DataBase {
         Statement st = null;
         try {
             st = connection.createStatement();
-            ResultSet rstUserFiles = st.executeQuery("SELECT filename, filesize FROM martin");
+            ResultSet rstUserFiles = st.executeQuery("SELECT filename, filesize FROM " + userName);
             while (rstUserFiles.next()) {
                 String fileName = rstUserFiles.getString(1);
                 String fileSize = rstUserFiles.getString(2);
@@ -125,6 +125,29 @@ public class DataBase {
         }
 
         return resultSB.toString();
+    }
+
+    public boolean deleteFile(String username, String fileName){
+        try {
+            connect();
+            pst = connection.prepareStatement("DELETE FROM " + username +" WHERE filename = ?");
+            pst.setString(1, fileName);
+            int deleteResult = pst.executeUpdate();
+            boolean fileDelete = fileWork.deleteFile(username, fileName);
+
+            if (deleteResult > 0 && fileDelete) {
+                System.out.println("БД: " + fileName + " - файл удален из базы данных и в папке");
+                return true;
+            } else {
+                System.out.println("БД: " + fileName + " - не смог удалить файл");
+                return false;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            disconnect();
+        }
+        return false;
     }
 
     public void connect() {

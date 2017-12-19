@@ -29,10 +29,12 @@ public class ClientGui extends JFrame {
         socketThread = new SocketThreadC(this);
         loginMenuGUI = new LoginMenuGui(socketThread, this);
         regMenuGui = new RegMenuGui(socketThread, this);
-        mainMenuGui = new MainMenuGui(socketThread, this);
         socketThread.start();
     }
 
+    public void initMainMenu(String[][] fileArr){
+        mainMenuGui = new MainMenuGui(socketThread, fileArr, this);
+    }
 
     public LoginMenuGui getLoginMenuGUI() {
         return loginMenuGUI;

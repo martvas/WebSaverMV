@@ -78,6 +78,7 @@ public class SocketThreadS extends Thread {
                 e.printStackTrace();
             }
         }
+
         if(dataBase.addFileToDB(getName(), fileName, fileSize)){
             System.out.println("Сокет: файл " + fileName + " - инфо добавлена в базу");
         } else {
@@ -91,6 +92,7 @@ public class SocketThreadS extends Thread {
     public synchronized void requestHandler(String request) {
         System.out.println(request);
         String[] requestArr = request.split(":");
+
         if (requestArr[0].equals("login")) {
             if (dataBase.loginRequest(requestArr[1], requestArr[2])) {
                 String userName = requestArr[1];
@@ -98,11 +100,19 @@ public class SocketThreadS extends Thread {
                 setName(userName);
                 //--------!!! Переписать
                 sendAnswer("loginok:" + table);
-            } else sendAnswer("loginwrong:");
+            } else sendAnswer("loginwrong");
+
         } else if (requestArr[0].equals("reg")) {
             if (dataBase.regRequrst(requestArr[1], requestArr[2])) {
                 sendAnswer("regok:");
             } else sendAnswer("regwrong:");
+        } else if (requestArr[0].equals("deletefile")) {
+            //---!! Переписать ответ
+            //Если да то упдэйт, нет то что то другое
+           if (dataBase.deleteFile(getName(), requestArr[1])){
+               sendAnswer("update:" + dataBase.getTable(getName()));
+           } sendAnswer("update:" + dataBase.getTable(getName()));
+
         } else System.out.println("Сокет: Что то пошло не так с ответом");
     }
 

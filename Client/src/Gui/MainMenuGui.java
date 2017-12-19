@@ -27,11 +27,17 @@ public class MainMenuGui extends JFrame implements ActionListener {
     private JButton btnRemoveFile;
     private JButton btnSaveFile;
 
+    private String[][] filesArr;
 
-    public MainMenuGui(SocketThreadC socketThread, ClientGui clientGui) {
+
+    public MainMenuGui(SocketThreadC socketThread, String[][] filesArr, ClientGui clientGui) {
         this.socketThread = socketThread;
         this.clientGui = clientGui;
+
+        this.filesArr = filesArr;
         //Основной экран программы. Работа с файлами
+
+
         fMain = new JFrame();
         fMain.setSize(MAIN_WIDTH, MAIN_HEIGHT);
         fMain.setTitle(MAIN_TITLE);
@@ -45,21 +51,15 @@ public class MainMenuGui extends JFrame implements ActionListener {
         lbInfoMain = new JLabel(" ");
         pMainUp.add(lbInfoMain, BorderLayout.LINE_START);
 
-        //Данные для таблицы пока
         Object[] columnNames = new String[]{"Name", "Size"};
-        //Изменить в дальнейшем
-        Object[][] arrRows = new String[30][2];
-        //!!!!!!! - Пока заполняю пустотой. Заменитьи потом
-        for (int i = 0; i < arrRows.length; i++) {
-            for (int j = 0; j < arrRows[0].length; j++) {
-                arrRows[i][j] = " ";
-            }
-        }
-
         pMain = new JPanel(new BorderLayout());
 
         JPanel pTable = new JPanel();
-        tFileTable = new JTable(arrRows, columnNames);
+        tFileTable = new JTable(filesArr, columnNames) {
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            };
+        };
         tFileTable.setAutoscrolls(true);
         tFileTable.setPreferredSize(new Dimension(300, 400));
         JScrollPane pane = new JScrollPane(tFileTable);
@@ -87,7 +87,7 @@ public class MainMenuGui extends JFrame implements ActionListener {
         fMain.add(pMain, BorderLayout.CENTER);
         fMain.add(pMainRight, BorderLayout.EAST);
 
-        fMain.setVisible(false);
+        fMain.setVisible(true);
     }
 
     public void setVisible(boolean b) {
@@ -105,7 +105,7 @@ public class MainMenuGui extends JFrame implements ActionListener {
         if (src == btnAddFile) {
             addFile();
         } else if (src == btnRemoveFile) {
-
+            removeFile();
         } else if (src == btnSaveFile) {
 
         } else {
@@ -123,14 +123,30 @@ public class MainMenuGui extends JFrame implements ActionListener {
         }
     }
 
-    //Заполняю таблицу из строки
-    //!!!!!!! переделать потом
-    public void setTable(String[] tableFromBD){
-        int numCell = 0;
-        for (int i = 0; i < tableFromBD.length / 2; i++) {
+
+
+    //Обновление таблицы
+    public void updateTable(String[][] filesArr){
+        this.filesArr = filesArr;
+        for (int i = 0; i < filesArr.length; i++) {
             for (int j = 0; j < 2; j++) {
-                tFileTable.setValueAt(tableFromBD[numCell++], i, j);
+                tFileTable.setValueAt(filesArr[i][j], i, j);
             }
         }
     }
+
+    public String[][] getFilesArr() {
+        return filesArr;
+    }
+
+    public void removeFile(){
+        int selectedRow = tFileTable.getSelectedRow();
+        String fileName = (String) tFileTable.getValueAt(selectedRow, 0);
+        String fileSize = (String) tFileTable.getValueAt(selectedRow, 1);
+        System.out.println("Try to delete file: " + fileName + " " + fileSize);
+        socketThread.sendRequest("deletefile:" + fileName + ":" + fileSize);
+
+    }
+
+
 }
