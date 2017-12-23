@@ -6,8 +6,9 @@ import javax.swing.*;
 
 /*
 что сделать:
-
+1. ПРи добавлении -  удалении файла, новое окно
  */
+
 public class ClientGui extends JFrame {
 
     private SocketThreadC socketThread;

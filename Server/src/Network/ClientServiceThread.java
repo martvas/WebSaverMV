@@ -6,13 +6,13 @@ import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 
-public class SocketThreadS extends Thread {
+public class ClientServiceThread extends Thread {
     private final Socket socket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private DataBase dataBase;
 
-    public SocketThreadS(Socket socket, DataBase dataBase) {
+    public ClientServiceThread(Socket socket, DataBase dataBase) {
         this.socket = socket;
         this.dataBase = dataBase;
         start();
@@ -38,8 +38,6 @@ public class SocketThreadS extends Thread {
                         if ( saveFile((File) request) ){
                             sendAnswer("update:" + dataBase.getTable(getName()));
                         } else System.out.println("Не смог сохранить файл");
-
-
                     }
                 }
             }

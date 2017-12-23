@@ -7,7 +7,7 @@ import java.net.Socket;
 public class ServerSocketThread extends Thread {
 
     private DataBase dataBase;
-    private Socket socket;
+    private Socket clientSocket;
 
 
     public ServerSocketThread(DataBase dataBase){
@@ -22,8 +22,8 @@ public class ServerSocketThread extends Thread {
             System.out.println("Сервер запущен, ожидаем подключения");
 
             while (true){
-                socket = serverSocket.accept();
-                new SocketThreadS(socket, dataBase);
+                clientSocket = serverSocket.accept();
+                new ClientServiceThread(clientSocket, dataBase);
             }
         } catch (Exception e){
             e.printStackTrace();

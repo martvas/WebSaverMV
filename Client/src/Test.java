@@ -1,9 +1,6 @@
-import Network.SimpleClient;
-
-import java.util.Arrays;
-
+//Это просто тестовый класс, не обращайте внимания. Потом его удалю
 public class Test {
     public static void main(String[] args) throws Exception {
-        SimpleClient sc = new SimpleClient("localhost", 8888);
+
     }
 }
