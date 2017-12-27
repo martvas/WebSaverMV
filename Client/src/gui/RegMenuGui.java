@@ -1,6 +1,6 @@
-package Gui;
+package gui;
 
-import Network.SocketThreadC;
+import network.ServerServiceThread;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -11,7 +11,7 @@ import java.awt.event.ActionListener;
 public class RegMenuGui extends JFrame implements ActionListener {
     private static final String INFO_SIGN = "( i )";
 
-    private SocketThreadC socketThread;
+    private ServerServiceThread serverService;
     private ClientGui clientGui;
     private GridBagConstraints gbc;
 
@@ -29,7 +29,7 @@ public class RegMenuGui extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         Object src = e.getSource();
         if (src == btnRegisterReg) {
-            sendForReg();
+            registrationAttempt();
         } else if (src == btnBackReg) {
             clientGui.getLoginMenuGUI().setVisible(true);
             fReg.setVisible(false);
@@ -38,11 +38,14 @@ public class RegMenuGui extends JFrame implements ActionListener {
         }
     }
 
-    public void sendForReg(){
-        if (!tfUsernameReg.getText().isEmpty() && !tfPassReg.getText().isEmpty() && !tfUsernameReg.getText().isEmpty()){
-            if(tfPassReg.getText().equals(tfPass2Reg.getText())){
-                String regRequest = "reg:" + tfUsernameReg.getText() + ":" + tfPassReg.getText();
-                socketThread.sendRequest(regRequest);
+    public void registrationAttempt(){
+        String userName = tfUsernameReg.getText();
+        String passwordFirst = tfPassReg.getText();
+        String passwordSecond = tfPass2Reg.getText();
+
+        if (!userName.isEmpty() && !passwordFirst.isEmpty() && !passwordSecond.isEmpty()){
+            if(passwordFirst.equals(passwordSecond)){
+                serverService.registrationRequest(userName, passwordFirst);
                 tfUsernameReg.setText("");
                 tfPassReg.setText("");
                 tfPass2Reg.setText("");
@@ -58,8 +61,8 @@ public class RegMenuGui extends JFrame implements ActionListener {
         fReg.setVisible(b);
     }
 
-    public RegMenuGui(SocketThreadC socketThread, ClientGui clientGui){
-        this.socketThread = socketThread;
+    public RegMenuGui(ServerServiceThread serverService, ClientGui clientGui){
+        this.serverService = serverService;
         this.clientGui = clientGui;
 
         gbc = new GridBagConstraints();
@@ -74,7 +77,6 @@ public class RegMenuGui extends JFrame implements ActionListener {
         JLabel lbPassReg;
         JLabel lbPass2Reg;
         JPanel pRegB;
-        JButton btnBackReg;
 
         //Экран регистрации
         fReg = new JFrame();
@@ -142,8 +144,8 @@ public class RegMenuGui extends JFrame implements ActionListener {
         btnRegisterReg.addActionListener(this);
         btnBackReg = new JButton("Back");
         btnBackReg.addActionListener(this);
-        pRegB.add(btnRegisterReg);
         pRegB.add(btnBackReg);
+        pRegB.add(btnRegisterReg);
 
         fReg.add(pRegB, BorderLayout.PAGE_END);
         fReg.setVisible(false);

@@ -1,12 +1,18 @@
-import Network.ServerSocketThread;
-import FileWork.FileWork;
-import DataBase.DataBase;
+import network.ServerSocketStart;
+import fileWork.FileWork;
+import database.DataBase;
+
+/*
+что сделать:
+1. В clientServiceThread проверять clientName = на нуль
+ */
 
 public class Server {
 
     public static void main(String[] args) {
         FileWork fileWork = new FileWork();
         DataBase db = new DataBase(fileWork);
-        ServerSocketThread serverSocketThread = new ServerSocketThread(db);
+        ServerSocketStart serverSocketStart = new ServerSocketStart(db, fileWork);
+        serverSocketStart.searchClients();
     }
 }

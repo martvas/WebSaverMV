@@ -1,6 +1,6 @@
-package Gui;
+package gui;
 
-import Network.SocketThreadC;
+import network.ServerServiceThread;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -12,7 +12,7 @@ public class LoginMenuGui extends JFrame implements ActionListener {
 
     private static final String INFO_SIGN = "( i )";
 
-    private SocketThreadC socketThread;
+    private ServerServiceThread serverService;
     private ClientGui clientGui;
 
     //Поля для экрана входа
@@ -23,8 +23,8 @@ public class LoginMenuGui extends JFrame implements ActionListener {
     private JButton btnLogin;
     private JButton btnRegister;
 
-    public LoginMenuGui(SocketThreadC socketThread, ClientGui clientGui){
-        this.socketThread = socketThread;
+    public LoginMenuGui(ServerServiceThread serverService, ClientGui clientGui){
+        this.serverService = serverService;
         this.clientGui = clientGui;
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -114,8 +114,7 @@ public class LoginMenuGui extends JFrame implements ActionListener {
 
     public void sendLogin(){
         if (!tfUsername.getText().isEmpty() && !tfPass.getText().isEmpty()) {
-            String loginRequest = "login:" + tfUsername.getText() + ":" + tfPass.getText();
-            socketThread.sendRequest(loginRequest);
+            serverService.loginRequest(tfUsername.getText(), tfPass.getText());
             tfUsername.setText("");
             tfPass.setText("");
         } else lbInfo.setText("Имя или пароль пусты");

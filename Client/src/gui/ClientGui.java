@@ -1,17 +1,17 @@
-package Gui;
+package gui;
 
-import Network.SocketThreadC;
+import network.ServerServiceThread;
 
 import javax.swing.*;
 
 /*
-что сделать:
-1. ПРи добавлении -  удалении файла, новое окно
+что сделать(для меня коменты):
+2. Проверить инкапсуляцию для методов и полей + сервер
  */
 
 public class ClientGui extends JFrame {
 
-    private SocketThreadC socketThread;
+    private ServerServiceThread serverServiceThread;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -27,14 +27,14 @@ public class ClientGui extends JFrame {
     private MainMenuGui mainMenuGui;
 
     public ClientGui() {
-        socketThread = new SocketThreadC(this);
-        loginMenuGUI = new LoginMenuGui(socketThread, this);
-        regMenuGui = new RegMenuGui(socketThread, this);
-        socketThread.start();
+        serverServiceThread = new ServerServiceThread(this);
+        loginMenuGUI = new LoginMenuGui(serverServiceThread, this);
+        regMenuGui = new RegMenuGui(serverServiceThread, this);
+        serverServiceThread.start();
     }
 
     public void initMainMenu(String[][] fileArr){
-        mainMenuGui = new MainMenuGui(socketThread, fileArr, this);
+        mainMenuGui = new MainMenuGui(serverServiceThread, fileArr, this);
     }
 
     public LoginMenuGui getLoginMenuGUI() {

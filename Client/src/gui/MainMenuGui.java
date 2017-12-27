@@ -1,16 +1,24 @@
-package Gui;
+package gui;
 
-import Network.SocketThreadC;
+import network.ServerServiceThread;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
+/*
+Что сделать:
+1ю Вынести выбор файла в отдельный метод и проверять выбран ли файл
+
+ */
 
 public class MainMenuGui extends JFrame implements ActionListener {
 
-    private SocketThreadC socketThread;
+    private ServerServiceThread serverService;
     private ClientGui clientGui;
 
     //Основной экран папка
@@ -30,13 +38,12 @@ public class MainMenuGui extends JFrame implements ActionListener {
     private String[][] filesArr;
 
 
-    public MainMenuGui(SocketThreadC socketThread, String[][] filesArr, ClientGui clientGui) {
-        this.socketThread = socketThread;
+    public MainMenuGui(ServerServiceThread serverService, String[][] filesArr, ClientGui clientGui) {
+        this.serverService = serverService;
         this.clientGui = clientGui;
 
-        this.filesArr = filesArr;
         //Основной экран программы. Работа с файлами
-
+        this.filesArr = filesArr;
 
         fMain = new JFrame();
         fMain.setSize(MAIN_WIDTH, MAIN_HEIGHT);
@@ -55,13 +62,15 @@ public class MainMenuGui extends JFrame implements ActionListener {
         pMain = new JPanel(new BorderLayout());
 
         JPanel pTable = new JPanel();
-        tFileTable = new JTable(filesArr, columnNames) {
+
+        tFileTable = new JTable() {
             public boolean isCellEditable(int row, int column) {
                 return false;
             };
         };
         tFileTable.setAutoscrolls(true);
         tFileTable.setPreferredSize(new Dimension(300, 400));
+        tFileTable.setModel(new FileTableModel(filesArr));
         JScrollPane pane = new JScrollPane(tFileTable);
         pTable.add(pane);
 
@@ -107,46 +116,65 @@ public class MainMenuGui extends JFrame implements ActionListener {
         } else if (src == btnRemoveFile) {
             removeFile();
         } else if (src == btnSaveFile) {
-
+            saveFile();
         } else {
             throw new RuntimeException("Unknown src = " + src);
         }
     }
 
+
     public void addFile(){
         JFileChooser fileopen = new JFileChooser();
-        int ret = fileopen.showDialog(null, "Открыть файл");
+        int ret = fileopen.showDialog(null, "Add file");
         if (ret == JFileChooser.APPROVE_OPTION) {
             File file = fileopen.getSelectedFile();
-            setInfo(file.getName());
-            socketThread.sendFile(file);
-        }
-    }
+            String fileName = file.getName();
+            String fileSize = String.valueOf(file.length());
+            serverService.addFileRequest(fileName, fileSize);
 
-
-
-    //Обновление таблицы
-    public void updateTable(String[][] filesArr){
-        this.filesArr = filesArr;
-        for (int i = 0; i < filesArr.length; i++) {
-            for (int j = 0; j < 2; j++) {
-                tFileTable.setValueAt(filesArr[i][j], i, j);
+            try {
+                byte[] fileContent = Files.readAllBytes(file.toPath());
+                serverService.sendFileInBytes(fileContent);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
 
-    public String[][] getFilesArr() {
-        return filesArr;
+    public void updateTable(String[][] filesArr){
+        tFileTable.setModel(new FileTableModel(filesArr));
     }
 
     public void removeFile(){
         int selectedRow = tFileTable.getSelectedRow();
         String fileName = (String) tFileTable.getValueAt(selectedRow, 0);
         String fileSize = (String) tFileTable.getValueAt(selectedRow, 1);
-        System.out.println("Try to delete file: " + fileName + " " + fileSize);
-        socketThread.sendRequest("deletefile:" + fileName + ":" + fileSize);
 
+        System.out.println("Try to delete file: " + fileName + " " + fileSize);
+        serverService.deleteFileRequest(fileName, fileSize);
     }
 
+    public void saveFile(){
+        int selectedRow = tFileTable.getSelectedRow();
+        String fileName = (String) tFileTable.getValueAt(selectedRow, 0);
+        String fileSize = (String) tFileTable.getValueAt(selectedRow, 1);
+        System.out.println("Try to download file: " + fileName + " " + fileSize);
+        serverService.saveFileRequest(fileName, fileSize);
+    }
 
+    public String getDirectoryToSaveFile(){
+        JFileChooser chooser = new JFileChooser();
+        String directory = null;
+        chooser.setCurrentDirectory(new java.io.File("."));
+        chooser.setDialogTitle("Choose directory to save file");
+
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setAcceptAllFileFilterUsed(false);
+        if (chooser.showDialog(null, "Save file here") == JFileChooser.APPROVE_OPTION) {
+            directory = chooser.getSelectedFile().toString();
+        } else {
+            System.out.println("No Selection ");
+        }
+        return directory;
+    }
 }
