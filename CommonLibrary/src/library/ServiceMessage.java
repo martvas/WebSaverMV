@@ -14,5 +14,6 @@ public class ServiceMessage {
     public static final String UPDATE = "update";
     public static final String REGISTRATION_ACCEPTED = "registration_accepted";
     public static final String REGISTRATION_CANCELED = "registration_canceled";
-
+    public static final String INFO = "information";
+    public static final String SAVE_FILE_INFO = "info_to_save_file";
 }
