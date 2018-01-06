@@ -1,10 +1,12 @@
-package file;
+package model.file;
 
 import org.apache.commons.io.FilenameUtils;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
