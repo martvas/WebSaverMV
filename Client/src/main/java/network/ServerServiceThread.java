@@ -1,7 +1,8 @@
-package model.network;
+package network;
 
+import file.WebSaverFile;
+import library.CommonInfo;
 import library.ServiceMessage;
-import model.file.WebSaverFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,11 +21,12 @@ public class ServerServiceThread extends Thread {
     private boolean connectedToServer;
     private ServerServiceListener serverServiceListener;
 
-    private String nextFileName;
-    private String derictoryToSaveFile;
+    private volatile String nextFileName;
+    private volatile String nextFileMd5Hash;
+
+    private String directoryToSaveFile;
 
     private String nextFileNameGetFromServer;
-    private String nextFileMd5Hash;
 
     private WebSaverFile wsFile;
 
@@ -38,7 +40,7 @@ public class ServerServiceThread extends Thread {
         while (!connectedToServer) {
             try {
                 sendResponseToView(ServiceMessage.TRY_TO_CONNECT);
-                socket = new Socket("localhost", 8189);
+                socket = new Socket(CommonInfo.SERVER_ADDRESS, CommonInfo.PORT);
                 connectedToServer = true;
             } catch (ConnectException e) {
                 sendResponseToView(ServiceMessage.NO_CONNECT);
@@ -88,19 +90,25 @@ public class ServerServiceThread extends Thread {
         }
     }
 
+    //fixme Проверить на компе есть ли притормаживания
     //Метод, который сохраняет массив байтов в файл
-    private synchronized void responseByteArrHandler(byte[] response) {
+    private synchronized void responseByteArrHandler(final byte[] response) {
         //Проверяем одинаковое ли отосланное название файла и которое будет принято + существует ли директория
-        if (derictoryToSaveFile != null && nextFileName.equals(nextFileNameGetFromServer)) {
-            if (wsFile.saveFileOnComputer(derictoryToSaveFile, nextFileName, response, nextFileMd5Hash)) {
-                sendResponseToView(ServiceMessage.FILE_SAVED + ":" + "Файл успешно сохранился в " + derictoryToSaveFile + "\\" + nextFileName);
-            } else sendResponseToView(ServiceMessage.MAIN_INFO + ":" + nextFileName + "Не сохранился");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (directoryToSaveFile != null && nextFileName.equals(nextFileNameGetFromServer)) {
+                    if (wsFile.saveFile(directoryToSaveFile, nextFileName, response, nextFileMd5Hash)) {
+                        sendResponseToView(ServiceMessage.FILE_SAVED + ":" + "Файл успешно сохранился в " + directoryToSaveFile + "\\" + nextFileName);
+                    } else sendResponseToView(ServiceMessage.MAIN_INFO + ":" + nextFileName + "Не сохранился");
 
-            //Обнуляю переменные для название и имя файла,
-            nextFileName = null;
-            nextFileMd5Hash = null;
-            nextFileMd5Hash = null;
-        }
+                    //Обнуляю переменные для название и имя файла,
+                    nextFileName = null;
+                    nextFileMd5Hash = null;
+                }
+            }
+        }).start();
+
     }
 
     private synchronized void sendRequest(String msg) {
@@ -124,7 +132,6 @@ public class ServerServiceThread extends Thread {
 
 
     private synchronized void responseStringHandler(String response) {
-
         String[] responseArr = response.split(":");
         String responseID = responseArr[0];
 
@@ -145,7 +152,7 @@ public class ServerServiceThread extends Thread {
     }
 
     public synchronized void registrationRequest(String username, String password) {
-        String regRequest = ServiceMessage.REGISTR + ":" + username + ":" + password;
+        String regRequest = ServiceMessage.REGISTRATION + ":" + username + ":" + password;
         sendRequest(regRequest);
     }
 
@@ -158,20 +165,25 @@ public class ServerServiceThread extends Thread {
 
         //записываю в переменные название, чтобы потом сравнить при получении
         this.nextFileName = fileName;
-        this.derictoryToSaveFile = derictoryToSaveFile;
+        this.directoryToSaveFile = derictoryToSaveFile;
     }
 
-    public synchronized void addFileToServer(File file) {
+    public synchronized void addFileToServer(final File file) {
         String fileName = file.getName();
         String fileHash = wsFile.getFileMd5Hash(file.toPath());
         addFileRequest(fileName, fileHash);
 
-        try {
-            byte[] fileContent = Files.readAllBytes(file.toPath());
-            sendFileInBytes(fileContent);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    byte[] fileContent = Files.readAllBytes(file.toPath());
+                    sendFileInBytes(fileContent);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     private synchronized void addFileRequest(String filename, String fileHash) {

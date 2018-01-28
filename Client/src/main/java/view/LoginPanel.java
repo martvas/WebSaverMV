@@ -11,10 +11,7 @@ import java.awt.event.ActionListener;
 public class LoginPanel extends JPanel implements LoginView, ActionListener {
 
     private LoginController loginController;
-
     private CardLayout cardLayout;
-
-    //Поля для экрана входа
     private JLabel lbInfo;
     private JTextField tfUsername;
     private JTextField tfPass;

@@ -1,6 +1,6 @@
 package controller;
 
-import model.network.ServerServiceThread;
+import network.ServerServiceThread;
 import view.ClientGui;
 import view.LoginView;
 import view.MainFileView;

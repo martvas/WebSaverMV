@@ -6,7 +6,6 @@ public class MyCardLayout extends CardLayout {
 
     @Override
     public Dimension preferredLayoutSize(Container parent) {
-
         Component current = findCurrentComponent(parent);
         if (current != null) {
             Insets insets = parent.getInsets();

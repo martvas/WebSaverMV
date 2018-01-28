@@ -2,8 +2,8 @@ package view;
 
 import controller.ClientController;
 import library.ServiceMessage;
-import model.network.ServerServiceListener;
-import model.network.ServerServiceThread;
+import network.ServerServiceListener;
+import network.ServerServiceThread;
 
 import javax.swing.*;
 import java.awt.*;

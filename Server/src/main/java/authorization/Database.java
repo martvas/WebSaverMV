@@ -1,13 +1,13 @@
-package database;
+package authorization;
 
 import java.sql.*;
 
-public class DataBase {
+public class Database {
     private Connection connection;
     private PreparedStatement pst;
     private ResultSet rSet;
 
-    public boolean loginRequest(String username, String password) {
+    public boolean loginRequestToDb(String username, String password) {
         connect();
         try {
             pst = connection.prepareStatement("SELECT password FROM users WHERE username = ?");
@@ -15,9 +15,13 @@ public class DataBase {
             rSet = pst.executeQuery();
             if (!rSet.next()) {
                 System.out.println("Такого юзера не существует");
+                return false;
             } else {
                 String passFromDB = rSet.getString("password");
-                if (password.equals(passFromDB)) return true;
+                if (password.equals(passFromDB)) {
+
+                    return true;
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -27,7 +31,7 @@ public class DataBase {
         return false;
     }
 
-    public boolean registration(String username, String password) {
+    public boolean registrationRequestToDb(String username, String password) {
         connect();
         try { pst = connection.prepareStatement("SELECT id FROM users WHERE username = ?");
             pst.setString(1, username);

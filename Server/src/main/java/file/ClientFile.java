@@ -1,20 +1,30 @@
 package file;
 
-import org.apache.commons.io.FilenameUtils;
+import authorization.User;
+import library.ServiceMessage;
+import network.ClientServiceThread;
 
-import javax.xml.bind.DatatypeConverter;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
-public class ClientFile {
 
-    private static final String DIRECTORY_WITH_CLIENTS_FOLDERS = "Server/clients_folder/";
+public class ClientFile extends WebSaverFile {
+    public static final String DIRECTORY_WITH_CLIENTS_FOLDERS = "Server/clients_folder/";
 
-    public boolean makeDir(String newFolderName) {
-        Path path = Paths.get(DIRECTORY_WITH_CLIENTS_FOLDERS + newFolderName);
+    private ClientServiceThread clientServiceThread;
+    private volatile String nextFileName;
+    private volatile String nextFileHash;
+    private String clientUserName;
+
+    public ClientFile(ClientServiceThread clientServiceThread, User user) {
+        this.clientServiceThread = clientServiceThread;
+        this.clientUserName = user.getClientUserName();
+    }
+
+    public static boolean makeDir(String folderName) {
+        Path path = Paths.get(DIRECTORY_WITH_CLIENTS_FOLDERS + folderName);
         try {
             Files.createDirectory(path);
         } catch (FileAlreadyExistsException e) {
@@ -27,25 +37,8 @@ public class ClientFile {
         return true;
     }
 
-    public boolean deleteFile(String folderName, String fileName) {
-        Path path = Paths.get("Server/clients_folder/" + folderName + "/" + fileName);
-        try {
-            Files.delete(path);
-        } catch (NoSuchFileException e) {
-            System.out.printf("%s: Файла не существует%n", path);
-            return false;
-        } catch (DirectoryNotEmptyException e) {
-            System.out.printf("%s not empty%n", path);
-            return false;
-        } catch (IOException e) {
-            System.out.println(e);
-            return false;
-        }
-        return true;
-    }
-
-    public String getFileCatalog(String folderName) {
-        Path path = Paths.get(DIRECTORY_WITH_CLIENTS_FOLDERS + folderName);
+    public String getFileCatalog() {
+        Path path = Paths.get(DIRECTORY_WITH_CLIENTS_FOLDERS + clientUserName);
         final StringBuilder strFiles = new StringBuilder();
         try {
             Files.walkFileTree(path, new FileVisitor<Path>() {
@@ -80,54 +73,64 @@ public class ClientFile {
         return strFiles.toString();
     }
 
-    public boolean saveFileOnServer(String clientUserName, String fileName, byte[] fileByteArr, String hashcode) {
-        String clientFolder = DIRECTORY_WITH_CLIENTS_FOLDERS + clientUserName + "/";
-        Path targetPath = Paths.get(clientFolder + fileName);
+    public synchronized void addFileToServerRequest(String fileName, String fileHash) {
+        this.nextFileName = fileName;
+        this.nextFileHash = fileHash;
+    }
 
-        //Проверка есть ли файл с таким же названием
-        int n = 1;
-        String fileNameWoutExt = FilenameUtils.removeExtension(fileName);
-        String fileExtension = FilenameUtils.getExtension(fileName);
-        while (Files.exists(targetPath)) {
-            targetPath = Paths.get(clientFolder + fileNameWoutExt + "(" + n + ")." + fileExtension);
-            n++;
+    public synchronized void tryToSaveFile(byte[] nextFileByteArr) {
+        String directory = DIRECTORY_WITH_CLIENTS_FOLDERS + clientUserName + "/";
+        if (saveFile(directory, nextFileName, nextFileByteArr, nextFileHash)) {
+            System.out.println("Файл уcпешно сохранился " + nextFileName);
+            clientServiceThread.sendResponse(ServiceMessage.UPDATE + ":" + getFileCatalog());
+        } else {
+            clientServiceThread.sendResponse(ServiceMessage.INFO + ":" + "Файл " + nextFileName + "не сохранен на сервере");
+            clientServiceThread.sendResponse(ServiceMessage.UPDATE + ":" + getFileCatalog());
+            System.out.println(nextFileName + "Не сохранился");
         }
 
+        //Обнуляю название и хэш файла
+        this.nextFileName = null;
+        this.nextFileHash = null;
+    }
+
+    public synchronized void tryToDeleteFile(String filename) {
+        if (deleteFile(filename)) {
+            clientServiceThread.sendResponse(ServiceMessage.UPDATE + ":" + getFileCatalog());
+        } else {
+            clientServiceThread.sendResponse(ServiceMessage.INFO + ":" + "Файл " + filename + " не удален");
+            clientServiceThread.sendResponse(ServiceMessage.UPDATE + ":" + getFileCatalog());
+        }
+    }
+
+    public boolean deleteFile(String fileName) {
+        Path path = Paths.get("Server/clients_folder/" + clientUserName + "/" + fileName);
         try {
-            Files.write(targetPath, fileByteArr);
+            Files.delete(path);
+        } catch (NoSuchFileException e) {
+            System.out.printf("%s: Файла не существует%n", path);
+            return false;
+        } catch (DirectoryNotEmptyException e) {
+            System.out.printf("%s not empty%n", path);
+            return false;
+        } catch (IOException e) {
+            System.out.println(e);
+            return false;
+        }
+        return true;
+    }
+
+    public synchronized void sendFileToClient(String fileName) {
+        File file = new File(DIRECTORY_WITH_CLIENTS_FOLDERS + clientUserName + "/" + fileName);
+        clientServiceThread.sendResponse(ServiceMessage.SAVE_FILE_INFO + ":" + fileName + ":" + getFileMd5Hash(file.toPath()));
+
+        try {
+            byte[] fileContent = Files.readAllBytes(file.toPath());
+            clientServiceThread.sendFileInBytes(fileContent);
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
-        }
-
-
-        //проверка Хэша
-        if (hashcode.equals(getFileMd5Hash(clientUserName, fileName))) {
-            System.out.println("Хэши одинаковые");
-            return true;
-        } else {
-            System.out.println("Хэш не сошался");
-            //Удаляю файл, который сохранил, если хэши не совпадают
-            try {
-                Files.delete(targetPath);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return false;
         }
     }
 
-    public String getFileMd5Hash(String clientUserName, String fileName) {
-        Path pathToFile = Paths.get(DIRECTORY_WITH_CLIENTS_FOLDERS + clientUserName + "/" + fileName);
-        String md5HashStr = null;
-        try {
-            byte[] data = Files.readAllBytes(pathToFile);
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] digest = md.digest(data);
-            md5HashStr = DatatypeConverter.printHexBinary(digest);
-        } catch (IOException | NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        return md5HashStr;
-    }
+
 }
