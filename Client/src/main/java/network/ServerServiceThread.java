@@ -90,13 +90,12 @@ public class ServerServiceThread extends Thread {
         }
     }
 
-    //fixme Проверить на компе есть ли притормаживания
     //Метод, который сохраняет массив байтов в файл
     private synchronized void responseByteArrHandler(final byte[] response) {
-        //Проверяем одинаковое ли отосланное название файла и которое будет принято + существует ли директория
         new Thread(new Runnable() {
             @Override
             public void run() {
+                //Проверяем одинаковое ли отосланное название файла и которое будет принято + существует ли директория
                 if (directoryToSaveFile != null && nextFileName.equals(nextFileNameGetFromServer)) {
                     if (wsFile.saveFile(directoryToSaveFile, nextFileName, response, nextFileMd5Hash)) {
                         sendResponseToView(ServiceMessage.FILE_SAVED + ":" + "Файл успешно сохранился в " + directoryToSaveFile + "\\" + nextFileName);

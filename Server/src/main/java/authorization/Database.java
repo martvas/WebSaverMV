@@ -38,8 +38,6 @@ public class Database {
             rSet = pst.executeQuery();
 
             if (!rSet.next()) {
-                //Создаю имя папки для пользователя такое же как аккаунт, чтобы легче было добраться до папки
-                //Имя всегда уникальное, в дальнейшем возможно поменять
                 pst = connection.prepareStatement("INSERT INTO users (username, password, folder) VALUES (?, ?, ?)");
                 pst.setString(1, username);
                 pst.setString(2, password);

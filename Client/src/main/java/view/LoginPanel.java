@@ -68,7 +68,6 @@ public class LoginPanel extends JPanel implements LoginView, ActionListener {
         btnLogin.addActionListener(this);
         btnRegister = new JButton("Registration");
         btnRegister.addActionListener(this);
-
         setBorder(new EmptyBorder(10, 10, 10, 10));
 
         JPanel pStartB = new JPanel();
